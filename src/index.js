@@ -1,31 +1,56 @@
+const { taxBands } = require("../src/data");
+
 exports.calculateLBTT = function (transactionFee) {
   let tax = 0;
-  let taxableTransactionFee = transactionFee - 145000;
+  let taxableTransactionFee = transactionFee - taxBands[0].difference;
+  console.log(taxableTransactionFee)
 
-  if (typeof transactionFee !== "number" || transactionFee < 0) {
+  if (!Number(transactionFee) || transactionFee < 0) {
     throw new Error(`Input must be a positive integer.`);
   }
-  // band 1
-  if (transactionFee < 145000) {
+  // band 0
+  if (transactionFee < taxBands[0].range[1]) {
     return tax;
+
+    // band 1
+  } else if (
+    transactionFee > taxBands[1].range[0] &&
+    transactionFee < taxBands[1].range[1]
+  ) {
+    tax += Math.floor(taxableTransactionFee * taxBands[1].rate);
+
     // band 2
-  } else if (transactionFee > 145001 && transactionFee < 250000) {
-    tax = Math.floor(taxableTransactionFee * 0.02);
+  } else if (
+    transactionFee > taxBands[2].range[0] &&
+    transactionFee < taxBands[2].range[1]
+  ) {
+    tax += taxBands[1].difference * taxBands[1].rate;
+    taxableTransactionFee -= taxBands[1].difference;
+    tax += taxableTransactionFee * taxBands[2].rate;
+
     // band 3
-  } else if (transactionFee > 250001 && transactionFee < 325000) {
-    tax = 105000 * 0.02;
-    taxableTransactionFee -= 105000;
-    tax += taxableTransactionFee * 0.05;
+  } else if (
+    transactionFee > taxBands[3].range[0] &&
+    transactionFee < taxBands[3].range[1]
+  ) {
+    tax += Math.floor(
+      taxBands[1].difference * taxBands[1].rate +
+        taxBands[2].difference * taxBands[2].rate
+    );
+    taxableTransactionFee -= taxBands[1].difference + taxBands[2].difference;
+    tax += Math.floor(taxableTransactionFee * taxBands[3].rate);
+
     // band 4
-  } else if (transactionFee > 325001 && transactionFee < 750000) {
-    tax = Math.floor(105000 * 0.02 + 75000 * 0.05);
-    taxableTransactionFee -= 105000 + 75000;
-    tax += Math.floor(taxableTransactionFee * 0.1);
-    // band 5
-  } else if (transactionFee > 750000) {
-    tax = Math.floor(105000 * 0.02 + 75000 * 0.05 + 425000 * 0.1);
-    taxableTransactionFee -= 105000 + 75000 + 425000;
-    tax += Math.floor(taxableTransactionFee * 0.12);
+  } else if (transactionFee > taxBands[4].range[0]) {
+    tax += Math.floor(
+      taxBands[1].difference * taxBands[1].rate +
+        taxBands[2].difference * taxBands[2].rate +
+        taxBands[3].difference * taxBands[3].rate
+    );
+    taxableTransactionFee -=
+      taxBands[1].difference + taxBands[2].difference + taxBands[3].difference;
+
+    tax += Math.floor(taxableTransactionFee * taxBands[4].rate);
   }
 
   return `£${tax.toFixed(2)}`;
