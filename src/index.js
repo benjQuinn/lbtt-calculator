@@ -11,15 +11,14 @@ exports.calculateLBTT = function (transactionFee) {
   }
   // band 0
   if (transactionFee < taxBands[0].range[1]) {
-    return tax;
+    return `£${tax.toFixed(2)}`;
 
     // band 1
   } else if (transactionFee > taxBands[1].range[0] && transactionFee < taxBands[1].range[1]) {
     tax += calculateTax(taxableTransactionFee, taxBands[1].rate);
 
     // band 2
-  } else if (transactionFee > taxBands[2].range[0] && transactionFee < taxBands[2].range[1]
-  ) {
+  } else if (transactionFee > taxBands[2].range[0] && transactionFee < taxBands[2].range[1]) {
     tax += calculateTax(taxBands[1].difference, taxBands[1].rate);
     
     taxableTransactionFee -= taxBands[1].difference;
